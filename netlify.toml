@@ -1,0 +1,10 @@
+# Netlify Configuration File
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Redirect /api/* endpoints to Netlify Serverless Functions (/.netlify/functions/*)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
