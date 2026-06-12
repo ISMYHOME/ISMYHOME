@@ -618,7 +618,7 @@ export default function App() {
               <span className="text-slate-800">|</span>
               <span className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-amber-400" />
-                이메일: ISMYHOME@naver.com
+                이메일: dwa5040@naver.com
               </span>
             </div>
           </div>
