@@ -1,0 +1,6 @@
+{
+  "name": "IS마이홈",
+  "description": "건축공학 전공 및 시공사 경력 전문가의 아파트 사전점검 서비스, IS마이홈 공식 홈페이지입니다. 정밀 장비를 통한 하자 분석 및 예약 서비스를 제공합니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
