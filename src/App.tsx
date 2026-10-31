@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Home, 
@@ -70,6 +70,56 @@ export default function App() {
     window.open(getKakaoLink(), '_blank', 'noopener,noreferrer');
   };
 
+  const scrollToSection = (e: React.MouseEvent<HTMLElement>, sectionId: string) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    const wasMenuOpen = isMenuOpen;
+    if (wasMenuOpen) {
+      setIsMenuOpen(false);
+    }
+
+    const performScroll = () => {
+      if (sectionId === 'hero-section') {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        if (window.history.pushState) {
+          window.history.pushState(null, '', '#hero-section');
+        }
+        return;
+      }
+
+      const target = document.getElementById(sectionId);
+      if (target) {
+        // sticky 헤더(h-20 = 80px)에 섹션 제목이 가려지지 않도록 96px 여유 공간 확보
+        const headerOffset = 96;
+        const rect = target.getBoundingClientRect();
+        const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || 0;
+        const targetY = Math.max(0, Math.round(rect.top + currentScrollY - headerOffset));
+
+        window.scrollTo({
+          top: targetY,
+          behavior: 'smooth'
+        });
+
+        if (window.history.pushState) {
+          window.history.pushState(null, '', `#${sectionId}`);
+        }
+      }
+    };
+
+    if (wasMenuOpen) {
+      // 모바일 메뉴 닫힘 애니메이션(200ms) 및 리렌더링 후 스크롤이 취소되지 않도록 비동기 지연 실행
+      setTimeout(performScroll, 220);
+    } else {
+      performScroll();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-slate-900 selection:text-white pb-16 md:pb-0 scroll-smooth font-sans">
       
@@ -112,11 +162,15 @@ export default function App() {
       </AnimatePresence>
 
       {/* HEADER & NAVIGATION */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           
           {/* Logo Brand Title */}
-          <a href="#hero-section" className="flex items-center gap-2 group">
+          <a 
+            href="#hero-section" 
+            onClick={(e) => scrollToSection(e, 'hero-section')}
+            className="flex items-center gap-2 group cursor-pointer"
+          >
             <span className="p-2 bg-slate-900 text-white rounded-xl group-hover:bg-amber-400 group-hover:text-slate-950 transition-colors shadow-md shadow-slate-950/10">
               <Home className="w-5 h-5" />
             </span>
@@ -129,12 +183,12 @@ export default function App() {
 
           {/* Desktop Nav Menus */}
           <nav className="hidden lg:flex items-center gap-8 text-sm font-bold text-slate-600">
-            <a href="#about-section" className="hover:text-slate-950 transition-colors">왜 IS마이홈인가?</a>
-            <a href="#process-section" className="hover:text-slate-950 transition-colors">이용 절차</a>
-            <a href="#inspection-section" className="hover:text-slate-950 transition-colors">점검 항목</a>
-            <a href="#cases-section" className="hover:text-slate-950 transition-colors">점검 사례</a>
-            <a href="#faq-section" className="hover:text-slate-950 transition-colors">자주 묻는 질문</a>
-            <a href="#company-section" className="hover:text-slate-950 transition-colors">회사 소개</a>
+            <a href="#about-section" onClick={(e) => scrollToSection(e, 'about-section')} className="hover:text-slate-950 transition-colors cursor-pointer">왜 IS마이홈인가?</a>
+            <a href="#process-section" onClick={(e) => scrollToSection(e, 'process-section')} className="hover:text-slate-950 transition-colors cursor-pointer">이용 절차</a>
+            <a href="#inspection-section" onClick={(e) => scrollToSection(e, 'inspection-section')} className="hover:text-slate-950 transition-colors cursor-pointer">점검 항목</a>
+            <a href="#cases-section" onClick={(e) => scrollToSection(e, 'cases-section')} className="hover:text-slate-950 transition-colors cursor-pointer">점검 사례</a>
+            <a href="#faq-section" onClick={(e) => scrollToSection(e, 'faq-section')} className="hover:text-slate-950 transition-colors cursor-pointer">자주 묻는 질문</a>
+            <a href="#company-section" onClick={(e) => scrollToSection(e, 'company-section')} className="hover:text-slate-950 transition-colors cursor-pointer">회사 소개</a>
           </nav>
 
           {/* Header Action Button (Desktop Only) */}
@@ -156,7 +210,7 @@ export default function App() {
           {/* Mobile hamburger navigation button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden p-2 text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+            className="lg:hidden p-2 text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             aria-label="메뉴 열기"
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -166,89 +220,109 @@ export default function App() {
         {/* Mobile Drawer Navigation Linkages */}
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden border-t border-slate-100 bg-white overflow-hidden shadow-inner"
-            >
-              <div className="px-6 py-5 space-y-4 flex flex-col text-sm font-bold text-slate-600">
-                <a 
-                  href="#about-section" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-1 hover:text-slate-950 transition-colors border-b border-slate-50"
-                >
-                  왜 IS마이홈인가?
-                </a>
-                <a 
-                  href="#process-section" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-1 hover:text-slate-950 transition-colors border-b border-slate-50"
-                >
-                  이용 절차
-                </a>
-                <a 
-                  href="#inspection-section" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-1 hover:text-slate-950 transition-colors border-b border-slate-50"
-                >
-                  점검 항목
-                </a>
-                <a 
-                  href="#cases-section" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-1 hover:text-slate-950 transition-colors border-b border-slate-50"
-                >
-                  점검 사례
-                </a>
-                <a 
-                  href="#faq-section" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-1 hover:text-slate-950 transition-colors border-b border-slate-50"
-                >
-                  자주 묻는 질문
-                </a>
-                <a 
-                  href="#company-section" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-1 hover:text-slate-950 transition-colors"
-                >
-                  회사 소개
-                </a>
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="lg:hidden fixed inset-0 top-20 bg-slate-950/40 backdrop-blur-xs z-30"
+                onClick={() => setIsMenuOpen(false)}
+              />
 
-                <div className="pt-4 grid grid-cols-2 gap-3">
+              {/* Drawer Content */}
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="lg:hidden absolute top-20 left-0 right-0 bg-white border-b border-slate-200 shadow-2xl z-40 max-h-[calc(100vh-5rem)] overflow-y-auto"
+              >
+                <div className="px-6 py-5 space-y-3.5 flex flex-col text-sm font-bold text-slate-700">
+                  <a 
+                    href="#about-section" 
+                    onClick={(e) => scrollToSection(e, 'about-section')}
+                    className="py-2 hover:text-slate-950 transition-colors border-b border-slate-100 flex items-center justify-between cursor-pointer"
+                  >
+                    <span>왜 IS마이홈인가?</span>
+                    <ArrowRight className="w-4 h-4 text-slate-300" />
+                  </a>
+                  <a 
+                    href="#process-section" 
+                    onClick={(e) => scrollToSection(e, 'process-section')}
+                    className="py-2 hover:text-slate-950 transition-colors border-b border-slate-100 flex items-center justify-between cursor-pointer"
+                  >
+                    <span>이용 절차</span>
+                    <ArrowRight className="w-4 h-4 text-slate-300" />
+                  </a>
+                  <a 
+                    href="#inspection-section" 
+                    onClick={(e) => scrollToSection(e, 'inspection-section')}
+                    className="py-2 hover:text-slate-950 transition-colors border-b border-slate-100 flex items-center justify-between cursor-pointer"
+                  >
+                    <span>점검 항목</span>
+                    <ArrowRight className="w-4 h-4 text-slate-300" />
+                  </a>
+                  <a 
+                    href="#cases-section" 
+                    onClick={(e) => scrollToSection(e, 'cases-section')}
+                    className="py-2 hover:text-slate-950 transition-colors border-b border-slate-100 flex items-center justify-between cursor-pointer"
+                  >
+                    <span>점검 사례</span>
+                    <ArrowRight className="w-4 h-4 text-slate-300" />
+                  </a>
+                  <a 
+                    href="#faq-section" 
+                    onClick={(e) => scrollToSection(e, 'faq-section')}
+                    className="py-2 hover:text-slate-950 transition-colors border-b border-slate-100 flex items-center justify-between cursor-pointer"
+                  >
+                    <span>자주 묻는 질문</span>
+                    <ArrowRight className="w-4 h-4 text-slate-300" />
+                  </a>
+                  <a 
+                    href="#company-section" 
+                    onClick={(e) => scrollToSection(e, 'company-section')}
+                    className="py-2 hover:text-slate-950 transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span>회사 소개</span>
+                    <ArrowRight className="w-4 h-4 text-slate-300" />
+                  </a>
+
+                  <div className="pt-3 grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleKakaoLink();
+                      }}
+                      className="w-full text-center py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
+                    >
+                      카카오톡 문의
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsBookingOpen(true);
+                      }}
+                      className="w-full text-center py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-md shadow-slate-950/10"
+                    >
+                      온라인 예약하기
+                    </button>
+                  </div>
+
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
-                      handleKakaoLink();
+                      setIsAdminOpen(true);
                     }}
-                    className="w-full text-center py-3 bg-slate-100 text-slate-800 text-xs rounded-xl"
+                    className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
                   >
-                    카카오톡 문의
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      setIsBookingOpen(true);
-                    }}
-                    className="w-full text-center py-3 bg-slate-900 text-white text-xs rounded-xl"
-                  >
-                    온라인 예약하기
+                    <Lock className="w-3.5 h-3.5 text-slate-400" />
+                    <span>관리자 대시보드</span>
                   </button>
                 </div>
-
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setIsAdminOpen(true);
-                  }}
-                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200/60 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
-                >
-                  <Lock className="w-3.5 h-3.5 text-slate-400" />
-                  <span>관리자 대시보드</span>
-                </button>
-              </div>
-            </motion.div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </header>
@@ -257,7 +331,7 @@ export default function App() {
       <HeroCarousel onOpenBooking={() => setIsBookingOpen(true)} />
 
       {/* 2. WHY IS마이홈 SECTION (USP - UNIQUE SELLING POINTS) */}
-      <section id="about-section" className="py-20 md:py-28 bg-slate-50/50 relative">
+      <section id="about-section" className="scroll-mt-20 py-20 md:py-28 bg-slate-50/50 relative">
         <div className="max-w-7xl mx-auto px-6">
           
           <div className="max-w-3xl mx-auto text-center mb-16 space-y-3">
@@ -332,7 +406,7 @@ export default function App() {
       </section>
 
       {/* 3. PROCESS TIMELINE SECTION */}
-      <section id="process-section" className="py-20 md:py-28 bg-white">
+      <section id="process-section" className="scroll-mt-20 py-20 md:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-6 text-center">
           
           <div className="max-w-3xl mx-auto mb-16 space-y-3">
@@ -394,7 +468,7 @@ export default function App() {
       </section>
 
       {/* 4. INSPECTION PROTOCOLS / CHECKLISTS */}
-      <section id="inspection-section" className="py-20 md:py-28 bg-slate-50 relative">
+      <section id="inspection-section" className="scroll-mt-20 py-20 md:py-28 bg-slate-50 relative">
         <div className="max-w-7xl mx-auto px-6">
           
           <div className="max-w-3xl mx-auto text-center mb-16 space-y-3">
@@ -415,7 +489,7 @@ export default function App() {
       </section>
 
       {/* 5. ACTUAL CASE STUDIES (점검 사례) */}
-      <section id="cases-section" className="py-20 md:py-28 bg-white">
+      <section id="cases-section" className="scroll-mt-20 py-20 md:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           
           <div className="max-w-3xl mx-auto text-center mb-16 space-y-3">
@@ -436,7 +510,7 @@ export default function App() {
       </section>
 
       {/* 6. ACTUAL USER REVIEWS (입주민 솔직후기) */}
-      <section id="reviews-section" className="py-20 md:py-28 bg-white border-t border-slate-150">
+      <section id="reviews-section" className="scroll-mt-20 py-20 md:py-28 bg-white border-t border-slate-150">
         <div className="max-w-7xl mx-auto px-6">
           
           <div className="max-w-3xl mx-auto text-center mb-16 space-y-3">
@@ -457,7 +531,7 @@ export default function App() {
       </section>
 
       {/* 7. FAQ SECTION (아코디언 스타일) */}
-      <section id="faq-section" className="py-20 md:py-28 bg-slate-50 relative">
+      <section id="faq-section" className="scroll-mt-20 py-20 md:py-28 bg-slate-50 relative">
         <div className="max-w-4xl mx-auto px-6">
           
           <div className="text-center mb-16 space-y-3">
@@ -524,7 +598,7 @@ export default function App() {
       </section>
 
       {/* 8. COMPANY INTRO (회사 소개) */}
-      <section id="company-section" className="py-20 md:py-28 bg-white border-t border-slate-100">
+      <section id="company-section" className="scroll-mt-20 py-20 md:py-28 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:items-center">
             
@@ -638,10 +712,10 @@ export default function App() {
               <li>상담 센터: 주중 09:00 - 18:00 (토/일 휴무)</li>
               <li>긴급 연동 상담: 카카오톡 채널 연중무휴 24시간 가동</li>
               <li>
-                <a href="#about-section" className="hover:text-white transition-colors">서비스 이용 약관</a>
+                <a href="#about-section" onClick={(e) => scrollToSection(e, 'about-section')} className="hover:text-white transition-colors cursor-pointer">서비스 이용 약관</a>
               </li>
               <li>
-                <a href="#about-section" className="hover:text-white transition-colors text-amber-400 font-bold">개인정보 처리방침</a>
+                <a href="#about-section" onClick={(e) => scrollToSection(e, 'about-section')} className="hover:text-white transition-colors text-amber-400 font-bold cursor-pointer">개인정보 처리방침</a>
               </li>
             </ul>
           </div>

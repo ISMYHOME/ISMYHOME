@@ -36,7 +36,7 @@ export default function HeroCarousel({ onOpenBooking }: HeroCarouselProps) {
   };
 
   return (
-    <section id="hero-section" className="relative h-[680px] md:h-[750px] w-full flex items-center justify-center overflow-hidden bg-slate-950">
+    <section id="hero-section" className="scroll-mt-20 relative h-[680px] md:h-[750px] w-full flex items-center justify-center overflow-hidden bg-slate-950">
       {/* Background Slides */}
       <AnimatePresence mode="wait">
         <motion.div
